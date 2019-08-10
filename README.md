@@ -1,4 +1,4 @@
-motd
+PiStatsMOTD
 ====
 
 #### Message of the Day with Detailed Stats for the Raspberry Pi ####
