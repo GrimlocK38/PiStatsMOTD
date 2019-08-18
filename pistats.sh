@@ -6,16 +6,46 @@
 #	`sudo chown root:root /etc/profile.d/pistats.sh`
 # Make the file executable using;
 #	`sudo chmod +x /etc/profile.d/pistats.sh`
-# Remove existing MOTD and last login using;
+# Remove the existing message of the day using;
 #	`sudo rm /etc/motd`
 # Disable the last login information from the sshd service using;
 #	`sudo nano /etc/ssh/sshd_config` - Uncomment the line 'PrintLastLog yes' and change it to 'PrintLastLog no'
 # Disable the system information line using;
-# 	`sudo /etc/update-motd.d/10-uname` - Comment out the line 'uname -snrvm'
+# 	`sudo nano /etc/update-motd.d/10-uname` - Comment out the line 'uname -snrvm'
 # On RetroPie, remove the existing MOTD;
 # 	`sudo nano ~/.bashrc` - Comment out the second last line 'retropie_welcome'
-# Change the logo below by commenting out the default Ras-Pi logo and uncommenting one of the others. 
 
+# For the UFW status to run without a sudo password, add a new sudoers file 
+#	`sudo nano /etc/sudoers.d/ufwstatus`
+# Add the following two lines
+#	`Cmnd_Alias      UFWSTATUS = /usr/sbin/ufw status`
+#	`%ufwstatus      ALL=NOPASSWD: UFWSTATUS`
+# Create a group for the users 
+#	`sudo groupadd -r ufwstatus`
+# Add your users to the group
+#	`sudo gpasswd --add pi ufwstatus`
+
+# Change the logo below by commenting out the default Ras-Pi logo and uncommenting one of the others.
+
+# Assign colours to variables
+RST="$(tput sgr0)" # Reset Colour
+BLD="$(tput bold)" # Make Bold
+BLK="${RST}$(tput setaf 0)"
+RED="${RST}$(tput setaf 1)"
+GRE="${RST}$(tput setaf 2)"
+YEL="${RST}$(tput setaf 3)"
+BLU="${RST}$(tput setaf 4)"
+MAG="${RST}$(tput setaf 5)"
+CYA="${RST}$(tput setaf 6)"
+WHI="${RST}$(tput setaf 7)"
+BBLK="${BLD}$(tput setaf 0)"
+BRED="${BLD}$(tput setaf 1)"
+BGRE="${BLD}$(tput setaf 2)"
+BYEL="${BLD}$(tput setaf 3)"
+BBLU="${BLD}$(tput setaf 4)"
+BMAG="${BLD}$(tput setaf 5)"
+BCYA="${BLD}$(tput setaf 6)"
+BWHI="${BLD}$(tput setaf 7)"
 
 # Logged on user - Example: pi
 VAR_USR="$(whoami)"
@@ -63,26 +93,12 @@ VAR_LAST_LOGIN_IP="$(last -i $USER -F | grep -v 'still logged' | head -1 | awk '
 VAR_DATE="$(date +'%A,%e %B %Y, %R')"
 # System kernel name, hostname, kernel release, machine hardware name, and operating system -  Example: Linux raspberrypi 4.19.58+ armv6l GNU/Linux
 VAR_UNAME="$(uname -snrmo)"
+# Check VPN Status
+VAR_VPN="$(if ifconfig tun0 | grep -q "00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00"; then echo ${GRE}UP; else echo ${RED}DOWN; fi)"
+# Check Firewall Status
+VAR_UFW="$(if sudo ufw status | awk '{print $2}' | grep -q "inactive"; then echo ${RED}DISABLED; else echo ${GRE}ENABLED; fi)"
+# Colour 
 
-# Assign colours to variables
-RST="$(tput sgr0)" # Reset Colour
-BLD="$(tput bold)" # Make Bold
-BLK="${RST}$(tput setaf 0)"
-RED="${RST}$(tput setaf 1)"
-GRE="${RST}$(tput setaf 2)"
-YEL="${RST}$(tput setaf 3)"
-BLU="${RST}$(tput setaf 4)"
-MAG="${RST}$(tput setaf 5)"
-CYA="${RST}$(tput setaf 6)"
-WHI="${RST}$(tput setaf 7)"
-BBLK="${BLD}$(tput setaf 0)"
-BRED="${BLD}$(tput setaf 1)"
-BGRE="${BLD}$(tput setaf 2)"
-BYEL="${BLD}$(tput setaf 3)"
-BBLU="${BLD}$(tput setaf 4)"
-BMAG="${BLD}$(tput setaf 5)"
-BCYA="${BLD}$(tput setaf 6)"
-BWHI="${BLD}$(tput setaf 7)"
 
 # Lines of info to be displayed
 Line01="${BGRE}${VAR_DATE}"
@@ -100,9 +116,9 @@ Line12="${BMAG}Updates:${WHI}      ${VAR_UPDATES}/ ${VAR_PACKAGES} Packages Requ
 Line13="${BCYA}Last Login${WHI}:   ${VAR_LAST_LOGIN} from ${VAR_LAST_LOGIN_IP}"
 Line14="${BCYA}SSH Logins${WHI}:   ${VAR_USERS_LOGGED} users: ${VAR_USERNAMES_LOGGED}"
 Line15="${BCYA}IP Addresses${WHI}: ${VAR_IP_INTERN}(${VAR_IP_EXTERN})"
-Line16=""
+Line16="${BCYA}Security${WHI}:     VPN: ${WHI}${VAR_VPN}  ${WHI}UFW: ${WHI}${VAR_UFW}"
 
-# Logos - Uncomment one to use 
+# Logos - Uncomment one to use
 logo=(
 	"${BWHI}     ___             ___ _       "
 	"${BWHI}    | _ \__ _ ______| _ (_)      "
@@ -120,7 +136,7 @@ logo=(
 	"${BRED}          '~ .~~~. ~'            "
 	"${BRED}              '~'                "
 	"${BWHI}                                 "
-)	
+)
 
 # logo=(
 	# "${BWHI}                                 "
@@ -138,7 +154,7 @@ logo=(
 	# "${BRED}          '~ .~~~. ~'            "
 	# "${BRED}              '~'                "
 	# "${BWHI}                                 "
-# )	
+# )
 
 # logo=(
 	# "${BWHI}  ___     _           ___ _      "
@@ -179,7 +195,26 @@ logo=(
 	# "${BRED}              #####              "
 # )
 
-# Loop to stick logo and lines together 
+# logo=(
+    # "${BWHI}     ___ _    __ _     _         "
+    # "${BWHI}    / _ (_)  / _\ |__ (_)_ __    "
+    # "${BWHI}   / /_)/ |__\ \| '_ \| | '_ \   "
+    # "${BWHI}  / ___/| |__|\ \ | | | | |_) |  "
+    # "${BWHI}  \/    |_|  \__/_| |_|_| .__/   "
+    # "${BWHI}                        |_|      "
+	# "${BMAG}                     |           "
+    # "${BMAG}              |    __-__         "
+    # "${BMAG}            __-__ /  | (         "
+    # "${BMAG}           /  | ((   | |         "
+    # "${BMAG}         /(   | ||___|_.  .|     "
+    # "${BMAG}       .' |___|_|\`---|-'.' (     "
+	# "${BMAG}  '-._/_| (   |\     |.'    \    "
+    # "${BMAG}      '-._|.-.|-.    |'-.____'.  "
+    # "${BMAG}          |------------------'   "
+    # "${BMAG}           \`----------------'    "
+# )
+
+# Loop to stick logo and lines together
 for i in "${!logo[@]}"; do
 	out+="  ${logo[$i]}  "
 	case "$i" in
@@ -203,7 +238,7 @@ for i in "${!logo[@]}"; do
 	out+="\n"
 done
 
-# Display the combined result 
+# Display the combined result
 echo -e "\n$out"
 
 # Colour Bar - Uncomment to display
