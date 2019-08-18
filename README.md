@@ -27,7 +27,7 @@ Download and save the `pistats.sh` script to the /etc/profile.d/ folder on your 
 8. Reboot the Pi
 `sudo reboot`
 
-Optional if using UFW
+#### Optional if using UFW
 1. For the UFW status to run without a sudo password, add a new sudoers file 
 `sudo nano /etc/sudoers.d/ufwstatus`
 2. Add the following two lines
@@ -39,5 +39,3 @@ Cmnd_Alias      UFWSTATUS = /usr/sbin/ufw status
 `sudo groupadd -r ufwstatus`
 4. Add your users to the group
 `sudo gpasswd --add pi ufwstatus`
-
-Change the logo by commenting out the default Ras-Pi logo and uncommenting one of the other three. (Or make your own!) 
